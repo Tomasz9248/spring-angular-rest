@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!-- ng-app attribute means that html file is managed by angular during compilation -->
+<html ng-app="app">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>Product Manager</title>
+</head>
+<!-- set defined controller in app.js and make its alias playControl -->
+<body ng-controller="PlayerController as playControl">
+<!-- double curly brackets are used to get variable value -->
+<h1>{{playControl.appName}}</h1>
+<form>
+    <input type="text" ng-model="playControl.player.firstName" placeholder="first name"><br>
+    <input type="text" ng-model="playControl.player.lastName" placeholder="last name"><br>
+    <input type="text" ng-model="playControl.player.team" placeholder="team"><br>
+    <input type="text" ng-model="playControl.player.number" placeholder="number"><br>
+    <!-- ng-click sets aciton to do when element is clicked -->
+    <button ng-click="playControl.addPlayer(playControl.player)">Add Player</button>
+</form>
+
+<ul>
+    <!-- ng-repeat allows to iterate over every PLAYER in playControl.players object -->
+    <li ng-repeat="player in playControl.players">
+        <!-- curly brackets once again allow to get variable values -->
+        {{player.firstName}} - {{player.lastName}} ({{player.team}} - {{'#'+player.number}})
+    </li>
+</ul>
+<script type="text/javascript" src="bower_components/angular/angular.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
