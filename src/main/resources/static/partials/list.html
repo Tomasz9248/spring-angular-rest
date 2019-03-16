@@ -1,0 +1,6 @@
+<h1>List of all players</h1>
+<ul>
+    <li ng-repeat="p in listCtrl.players">
+        <a ng-href="#!details/{{p.id}}">{{p.firstName}} {{p.lastName}} - {{p.team}} {{p.number}}</a>
+    </li>
+</ul>

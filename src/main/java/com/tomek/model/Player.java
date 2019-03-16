@@ -3,6 +3,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Entity
 public class Player {
@@ -62,5 +63,33 @@ public class Player {
 
     public void setNumber(Integer number) {
         this.number = number;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        return Objects.equals(getId(), player.getId()) &&
+                Objects.equals(getFirstName(), player.getFirstName()) &&
+                Objects.equals(getLastName(), player.getLastName()) &&
+                Objects.equals(getTeam(), player.getTeam()) &&
+                Objects.equals(getNumber(), player.getNumber());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getFirstName(), getLastName(), getTeam(), getNumber());
+    }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", team='" + team + '\'' +
+                ", number=" + number +
+                '}';
     }
 }
