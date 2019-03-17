@@ -1,6 +1,6 @@
 angular.module('app', ['ngResource', 'ngRoute'])
-    // if login/pass is incorrect server sends response with Www-Authenticate Basic realm="Realm" header
-    // cause that some browsers popup additional window with login form
+// if login/pass is incorrect server sends response with Www-Authenticate Basic realm="Realm" header
+// cause that some browsers popup additional window with login form
     .config(function ($routeProvider, $httpProvider) {
         // to avoid that behaviour add X-Requested-With header and XMLHttpRequest as its value
         // now response will be send without Www-Authenticate header cause server can differ for example asynchronous AJAX request and standard POST request
@@ -49,12 +49,12 @@ angular.module('app', ['ngResource', 'ngRoute'])
     .constant('LOGIN_ENDPOINT', '/login')
     // add logout endpoint
     .constant('LOGOUT_ENDPOINT', '/logout')
-    .service('AuthenticationService', function($http, LOGIN_ENDPOINT, LOGOUT_ENDPOINT) {
-        this.authenticate = function(credentials, successCallback) {
+    .service('AuthenticationService', function ($http, LOGIN_ENDPOINT, LOGOUT_ENDPOINT) {
+        this.authenticate = function (credentials, successCallback) {
             // Basic authentication is to send request with header: Authorization: Basic stringxyz where stringxyz is char sequence encoded with base64 method
             // this string contains username and password stored in form of username:password
             // btoa() is browser implemented method that allows to encode data
-            var authHeader = {Authorization: 'Basic ' + btoa(credentials.username+':'+credentials.password)};
+            var authHeader = {Authorization: 'Basic ' + btoa(credentials.username + ':' + credentials.password)};
             // assign newly created object as a header
             var config = {headers: authHeader};
             // send POST request to login endpoint with defined config(authorization header)
@@ -62,6 +62,8 @@ angular.module('app', ['ngResource', 'ngRoute'])
                 .post(LOGIN_ENDPOINT, {}, config)
                 // define success callback if user is authenticated properly
                 .then(function success(value) {
+                    // assign header with login and password to all post request in order to make it restful
+                    $http.defaults.headers.post.Authorization = authHeader.Authorization;
                     successCallback();
                     // and error call back (401 status) if not
                 }, function error(reason) {
@@ -69,10 +71,10 @@ angular.module('app', ['ngResource', 'ngRoute'])
                     console.log(reason);
                 });
         }
-        // logout function sends POST request to logout endpoint
-        this.logout = function(successCallback) {
-            $http.post(LOGOUT_ENDPOINT)
-                .then(successCallback());
+        this.logout = function (successCallback) {
+            // delete authorization headers from post requests instead of setting global 'authenticated' attribute true
+            delete $http.defaults.headers.post.Authorization;
+            (successCallback());
         }
     })
     .controller('ListController', function (Players) {
@@ -93,12 +95,12 @@ angular.module('app', ['ngResource', 'ngRoute'])
         }
     })
     // add AuthenticationController
-    .controller('AuthenticationController', function($rootScope, $location, AuthenticationService) {
+    .controller('AuthenticationController', function ($rootScope, $location, AuthenticationService) {
         var vm = this;
         // credentials object is binded with form (username and password fields)
         vm.credentials = {};
         // after successful login application sets global var authenticated to true and redirects user to /new page
-        var loginSuccess = function() {
+        var loginSuccess = function () {
             // $rootScope is superior application context and allows to refer to authenticated variable in different html files
             $rootScope.authenticated = true;
             // $location allows to dynamically change URL address
@@ -106,15 +108,15 @@ angular.module('app', ['ngResource', 'ngRoute'])
         }
         // login function runs when "login" button in form is clicked
         // it check if username and password are valid based on authenticate method defined in AuthenticationService
-        vm.login = function() {
+        vm.login = function () {
             AuthenticationService.authenticate(vm.credentials, loginSuccess);
         }
         // add logout function that sets global authenticated attribute as false and redirects to '/' path
-        var logoutSuccess = function() {
+        var logoutSuccess = function () {
             $rootScope.authenticated = false;
             $location.path('/');
         }
-        vm.logout = function() {
+        vm.logout = function () {
             AuthenticationService.logout(logoutSuccess);
         }
     });
