@@ -1,5 +1,10 @@
 angular.module('app', ['ngResource', 'ngRoute'])
-    .config(function ($routeProvider) {
+    // if login/pass is incorrect server sends response with Www-Authenticate Basic realm="Realm" header
+    // cause that some browsers popup additional window with login form
+    .config(function ($routeProvider, $httpProvider) {
+        // to avoid that behaviour add X-Requested-With header and XMLHttpRequest as its value
+        // now response will be send without Www-Authenticate header cause server can differ for example asynchronous AJAX request and standard POST request
+        $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
         $routeProvider
             .when('/list', {
                 templateUrl: 'partials/list.html',
