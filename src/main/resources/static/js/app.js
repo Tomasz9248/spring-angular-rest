@@ -62,7 +62,7 @@ angular.module('app', ['ngResource', 'ngRoute'])
                 .post(LOGIN_ENDPOINT, {}, config)
                 // define success callback if user is authenticated properly
                 .then(function success(value) {
-                    // assign header with login and password to all post request in order to make it restful
+                    // if login successful assign header with login and password to all post request in order to make it restful
                     $http.defaults.headers.post.Authorization = authHeader.Authorization;
                     successCallback();
                     // and error call back (401 status) if not
@@ -72,7 +72,7 @@ angular.module('app', ['ngResource', 'ngRoute'])
                 });
         }
         this.logout = function (successCallback) {
-            // delete authorization headers from post requests instead of setting global 'authenticated' attribute true
+            // delete authorization headers from post requests while logout
             delete $http.defaults.headers.post.Authorization;
             (successCallback());
         }
