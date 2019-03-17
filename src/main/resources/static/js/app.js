@@ -31,8 +31,6 @@ angular.module('app', ['ngResource', 'ngRoute'])
                 redirectTo: '/list'
             });
     })
-    // add login endpoint as constant
-    .constant('LOGIN_ENDPOINT', '/login')
     .constant('PLAYER_ENDPOINT', '/api/players/:id')
     .factory('Player', function ($resource, PLAYER_ENDPOINT) {
         return $resource(PLAYER_ENDPOINT);
@@ -48,8 +46,10 @@ angular.module('app', ['ngResource', 'ngRoute'])
             player.$save();
         }
     })
-    // add Authentication service with $htttp in order to send request and LOGIN_ENDPOINT constant
-    .service('AuthenticationService', function($http, LOGIN_ENDPOINT) {
+    .constant('LOGIN_ENDPOINT', '/login')
+    // add logout endpoint
+    .constant('LOGOUT_ENDPOINT', '/logout')
+    .service('AuthenticationService', function($http, LOGIN_ENDPOINT, LOGOUT_ENDPOINT) {
         this.authenticate = function(credentials, successCallback) {
             // Basic authentication is to send request with header: Authorization: Basic stringxyz where stringxyz is char sequence encoded with base64 method
             // this string contains username and password stored in form of username:password
@@ -68,6 +68,11 @@ angular.module('app', ['ngResource', 'ngRoute'])
                     console.log('Login error');
                     console.log(reason);
                 });
+        }
+        // logout function sends POST request to logout endpoint
+        this.logout = function(successCallback) {
+            $http.post(LOGOUT_ENDPOINT)
+                .then(successCallback());
         }
     })
     .controller('ListController', function (Players) {
@@ -103,5 +108,13 @@ angular.module('app', ['ngResource', 'ngRoute'])
         // it check if username and password are valid based on authenticate method defined in AuthenticationService
         vm.login = function() {
             AuthenticationService.authenticate(vm.credentials, loginSuccess);
+        }
+        // add logout function that sets global authenticated attribute as false and redirects to '/' path
+        var logoutSuccess = function() {
+            $rootScope.authenticated = false;
+            $location.path('/');
+        }
+        vm.logout = function() {
+            AuthenticationService.logout(logoutSuccess);
         }
     });

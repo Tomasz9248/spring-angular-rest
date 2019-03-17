@@ -7,3 +7,8 @@
         <button ng-click="authCtrl.login()">Login</button>
     </form>
 </div>
+<!-- this div is shown only to authenticated users-->
+    <div ng-show="authenticated">
+        <h2>Do you really want to logout?</h2>
+        <a href="" ng-click="authCtrl.logout()">Logout</a>
+    </div>
