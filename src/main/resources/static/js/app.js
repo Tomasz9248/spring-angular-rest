@@ -1,12 +1,10 @@
-// add ngRescource module to connect to db and ngRoute to enable routing
 angular.module('app', ['ngResource', 'ngRoute'])
-    // config which html file should be loaded on index page in <div ng-view></div> section under specific url
     .config(function ($routeProvider) {
         $routeProvider
-            .when('/list', { // url path
-                templateUrl: 'partials/list.html', // html file to load
-                controller: 'ListController', // name of the controller
-                controllerAs: 'listCtrl' // controller alias (no need to define in list.html file)
+            .when('/list', {
+                templateUrl: 'partials/list.html',
+                controller: 'ListController',
+                controllerAs: 'listCtrl'
             })
             .when('/details/:id', {
                 templateUrl: 'partials/details.html',
@@ -18,48 +16,87 @@ angular.module('app', ['ngResource', 'ngRoute'])
                 controller: 'NewController',
                 controllerAs: 'newCtrl'
             })
-            .otherwise({ // otherwise is like else in if statement
-                redirectTo: '/list' // redirect to this address when requested url does not match any of defined above
+            // add login routing
+            .when('/login', {
+                templateUrl: 'partials/login.html',
+                controller: 'AuthenticationController',
+                controllerAs: 'authCtrl'
+            })
+            .otherwise({
+                redirectTo: '/list'
             });
     })
-    // define endpoint url as constant to avoid typos and keep code more readable
+    // add login endpoint as constant
+    .constant('LOGIN_ENDPOINT', '/login')
     .constant('PLAYER_ENDPOINT', '/api/players/:id')
-    // inject $resource into factory it returns constructor with methods to access data from endpoint
     .factory('Player', function ($resource, PLAYER_ENDPOINT) {
         return $resource(PLAYER_ENDPOINT);
     })
-    // service allows to retrieve data from endpoint with methods provided by $resource
     .service('Players', function (Player) {
         this.getAll = function () {
             return Player.query();
         }
         this.get = function (index) {
-            return Player.get({id:index})
+            return Player.get({id: index})
         }
         this.add = function (player) {
             player.$save();
         }
     })
-    // ListController (injected with Players service) gets all records from endpoint and assigns them to players attribute in model
+    // add Authentication service with $htttp in order to send request and LOGIN_ENDPOINT constant
+    .service('AuthenticationService', function($http, LOGIN_ENDPOINT) {
+        this.authenticate = function(credentials, successCallback) {
+            // Basic authentication is to send request with header: Authorization: Basic stringxyz where stringxyz is char sequence encoded with base64 method
+            // this string contains username and password stored in form of username:password
+            // btoa() is browser implemented method that allows to encode data
+            var authHeader = {Authorization: 'Basic ' + btoa(credentials.username+':'+credentials.password)};
+            // assign newly created object as a header
+            var config = {headers: authHeader};
+            // send POST request to login endpoint with defined config(authorization header)
+            $http
+                .post(LOGIN_ENDPOINT, {}, config)
+                // define success callback if user is authenticated properly
+                .then(function success(value) {
+                    successCallback();
+                    // and error call back (401 status) if not
+                }, function error(reason) {
+                    console.log('Login error');
+                    console.log(reason);
+                });
+        }
+    })
     .controller('ListController', function (Players) {
         var vm = this;
         vm.players = Players.getAll();
     })
-    // Inject Players service and $routeParams service that allows to get parameter from url address
     .controller('DetailsController', function ($routeParams, Players) {
         var vm = this;
         var playerIndex = $routeParams.id; // player index equals id parameter (line 11)
         vm.player = Players.get(playerIndex);
     })
-
-    // NewController is injected with Players service and Player service
-    // form fields are binded with model named player. After button click in form savePlayer() method is called and player is saved in db
-    // to set up fields as empty method creates new object
     .controller('NewController', function (Players, Player) {
         var vm = this;
         vm.player = new Player();
         vm.savePlayer = function () {
             Players.add(vm.player);
             vm.player = new Player();
+        }
+    })
+    // add AuthenticationController
+    .controller('AuthenticationController', function($rootScope, $location, AuthenticationService) {
+        var vm = this;
+        // credentials object is binded with form (username and password fields)
+        vm.credentials = {};
+        // after successful login application sets global var authenticated to true and redirects user to /new page
+        var loginSuccess = function() {
+            // $rootScope is superior application context and allows to refer to authenticated variable in different html files
+            $rootScope.authenticated = true;
+            // $location allows to dynamically change URL address
+            $location.path('/new');
+        }
+        // login function runs when "login" button in form is clicked
+        // it check if username and password are valid based on authenticate method defined in AuthenticationService
+        vm.login = function() {
+            AuthenticationService.authenticate(vm.credentials, loginSuccess);
         }
     });
